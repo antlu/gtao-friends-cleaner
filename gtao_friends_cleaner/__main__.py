@@ -8,7 +8,7 @@ from constants import (
     PROFILE_BASIC_INFO_URL,
     REQUEST_TIMEOUT,
     CONFIG_DIR_PATH,
-    AUTH_TOKEN_PATH
+    AUTH_TOKEN_PATH,
 )
 import functions
 
@@ -66,7 +66,7 @@ with requests.Session() as session:
 
     # Get friends info
     friends_to_process = list(friends_to_process)
-    functions.announce_task('Gathering friends info', friends_to_process)
+    functions.announce_task("Gathering friends info", friends_to_process)
     start_index = 0
     raw_full_friends_info = []
     while True:
@@ -95,22 +95,22 @@ with requests.Session() as session:
     # Select friends who have been offline for a long time
     while True:
         n = functions.get_valid_number(
-            'Enter the number of days to remove friends '
-            'who have been offline for this time or longer: '
+            "Enter the number of days to remove friends "
+            "who have been offline for this time or longer"
         )
         friends_to_remove = list(filter(
             lambda friend: functions.is_inactive_player(friend, n), friends_list
         ))
         print(f"{len(friends_to_remove)} friend(s) will be removed.")
-        if not functions.ask_yes_or_no('Change the value?', 'n'):
+        if not functions.ask_yes_or_no("Change the value?", 'n'):
             break
 
     # Continue?
-    if not functions.ask_yes_or_no('Continue?'):
+    if not functions.ask_yes_or_no("Continue?"):
         sys.exit()
 
     # Remove friends
-    functions.announce_task('Removing friends', friends_to_remove)
+    functions.announce_task("Removing friends", friends_to_remove)
     start_index = 0
     while True:
         for friend, iter_num in zip(friends_to_remove[start_index:], range(len(friends_to_remove))):
@@ -128,4 +128,4 @@ with requests.Session() as session:
         else:
             break
 
-    input('Done.')
+    input("Done.")

@@ -12,7 +12,7 @@ from constants import (
     TOKEN_REFRESH_URL,
     SLEEP_TIME,
     FRIEND_REMOVE_URL,
-    AUTH_TOKEN_PATH
+    AUTH_TOKEN_PATH,
 )
 
 
@@ -93,7 +93,7 @@ def ask_yes_or_no(question, default='y'):
         if answer in valid_answers:
             return valid_answers[answer]
         else:
-            print('Invalid answer.')
+            print("Invalid answer.")
 
 
 def save_token_to_file(token):
