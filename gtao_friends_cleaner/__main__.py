@@ -53,18 +53,40 @@ with requests.Session() as session:
     friends_names = map(lambda friend: friend['name'], raw_brief_friends_info)
     friends_to_process = friends_names
 
-    # Ignore whitelisted friends
+    # Read friends and crews names to ignore
     ignore_list_path = os.path.join(CONFIG_DIR_PATH, 'ignore_list.txt')
     if os.path.exists(ignore_list_path):
         with open(ignore_list_path, encoding='utf-8') as ignore_list:
-            ignored_friends_names = list(map(
-                lambda name: name.rstrip('\n'), ignore_list.readlines()
-            ))
-        friends_to_process = filter(
-            lambda name: name not in ignored_friends_names, friends_names
-        )
+            # Delete empty lines and newlines
+            ignored_names = filter(lambda line: line != '\n', ignore_list.readlines())
+        ignored_names = list(map(lambda line: line.rstrip('\n'), ignored_names))
 
-    # Get friends info
+        # Make separate lists of names depending on sections in file
+        friends_start_index = (
+            ignored_names.index('[friends]') + 1 if '[friends]' in ignored_names else -1
+        )
+        crews_start_index = (
+            ignored_names.index('[crews]') + 1 if '[crews]' in ignored_names else -1
+        )
+        if friends_start_index != -1 and crews_start_index != -1:
+            if friends_start_index < crews_start_index:
+                ignored_friends_names = ignored_names[friends_start_index:crews_start_index-1]
+                ignored_crews_names = ignored_names[crews_start_index:]
+            else:
+                ignored_friends_names = ignored_names[friends_start_index:]
+                ignored_crews_names = ignored_names[crews_start_index:friends_start_index-1]
+        elif friends_start_index == -1 and crews_start_index != -1:
+            ignored_crews_names = ignored_names[crews_start_index:]
+        elif friends_start_index != -1 and crews_start_index == -1:
+            ignored_friends_names = ignored_names[friends_start_index:]
+        else:
+            ignored_friends_names = ignored_names
+
+    # Ignore whitelisted friends
+    if ignored_friends_names:
+        friends_to_process = filter(lambda name: name not in ignored_friends_names, friends_names)
+
+    # Get friends full info
     friends_to_process = list(friends_to_process)
     functions.announce_task("Gathering friends info", friends_to_process)
     start_index = 0
@@ -87,10 +109,22 @@ with requests.Session() as session:
                     raise e
         else:
             break
+    # Move crews to profile
+    for friend in raw_full_friends_info:
+        friend['accounts'][0]['rockstarAccount']['crews'] = {
+            crew['crewName'] for crew in friend['accounts'][0].get('crews', set())
+        }
     # Normalize the list to discard unnecessary data
-    friends_list = list(map(
+    friends_list = map(
         lambda friend: friend['accounts'][0]['rockstarAccount'], raw_full_friends_info
-    ))
+    )
+
+    # Ignore whitelisted crews
+    # Could not be done earlier because there is no crews info at that time
+    if ignored_crews_names:
+        friends_to_process = list(filter(
+            lambda friend: friend['crews'].isdisjoint(set(ignored_crews_names)), friends_list
+        ))
 
     # Select friends who have been offline for a long time
     while True:
@@ -99,7 +133,7 @@ with requests.Session() as session:
             "who have been offline for this time or longer"
         )
         friends_to_remove = list(filter(
-            lambda friend: functions.is_inactive_player(friend, n), friends_list
+            lambda friend: functions.is_inactive_player(friend, n), friends_to_process
         ))
         print(f"{len(friends_to_remove)} friend(s) will be removed.")
         if not functions.ask_yes_or_no("Change the value?", 'n'):

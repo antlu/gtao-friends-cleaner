@@ -16,6 +16,10 @@ from constants import (
 )
 
 
+class TokenNotFoundError(Exception):
+    pass
+
+
 def get_auth_token_from_browser():
     webbrowser.open_new_tab(RGSC_HOME_URL)
     input("Press Enter when you are logged in to Social Club.")
@@ -23,6 +27,7 @@ def get_auth_token_from_browser():
     for cookie in cookie_jar:
         if cookie.name == 'BearerToken':
             return cookie.value
+    raise TokenNotFoundError
 
 
 def get_full_info(name, session):
