@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gtao_friends_cleaner"
-version = "1.0.0"
+version = "1.2.0"
 description = "A script to remove friends who haven't played GTA Online for a long time."
 authors = ["Anton <gmt@freemail.ru>"]
 readme = "README.md"

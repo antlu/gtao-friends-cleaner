@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import sys
@@ -16,6 +17,15 @@ import functions
 # Create config directory
 if not os.path.exists(CONFIG_DIR_PATH):
     os.mkdir(CONFIG_DIR_PATH)
+
+# Set up logging
+logging.basicConfig(
+    filename=os.path.join(CONFIG_DIR_PATH, 'log.txt'),
+    level=logging.INFO,
+    format='{asctime} - {message}',
+    datefmt='%Y-%m-%d',
+    style='{'
+)
 
 # Get an auth token from file or browser
 if os.path.exists(AUTH_TOKEN_PATH):
@@ -61,7 +71,7 @@ with requests.Session() as session:
             ignored_names = filter(lambda line: line != '\n', ignore_list.readlines())
         ignored_names = list(map(lambda line: line.rstrip('\n'), ignored_names))
 
-        # Make separate lists of names depending on sections in file
+        # Make separate lists of names depending on the sections in the file
         friends_start_index = (
             ignored_names.index('[friends]') + 1 if '[friends]' in ignored_names else -1
         )
@@ -86,7 +96,7 @@ with requests.Session() as session:
     if ignored_friends_names:
         friends_to_process = filter(lambda name: name not in ignored_friends_names, friends_names)
 
-    # Get friends full info
+    # Get friends' full info
     friends_to_process = list(friends_to_process)
     functions.announce_task("Gathering friends info", friends_to_process)
     start_index = 0
@@ -162,4 +172,5 @@ with requests.Session() as session:
         else:
             break
 
+    logging.info(f'Removed {", ".join([friend[name] for friend in friends_to_remove])}')
     input("Done.")
