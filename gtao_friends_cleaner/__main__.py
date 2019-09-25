@@ -172,5 +172,5 @@ with requests.Session() as session:
         else:
             break
 
-    logging.info(f'Removed {", ".join([friend[name] for friend in friends_to_remove])}')
+    logging.info(f"Removed {', '.join([friend['name'] for friend in friends_to_remove])}")
     input("Done.")
